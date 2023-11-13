@@ -1,4 +1,9 @@
 import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+import requests
+requests.packages.urllib3.disable_warnings()
+import ssl
 
 def fgsm_attack(model, images, labels, epsilon=0.01):
     # Set the model to trainable
