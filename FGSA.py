@@ -22,6 +22,7 @@ def fgsm_attack(model, images, labels, epsilon=0.01):
 
     return perturbed_images.numpy()
 
+"""
 # Choose a random test image and label
 index = np.random.randint(0, len(test_images))
 image = test_images[index]
@@ -38,3 +39,4 @@ perturbed_pred = model.predict(perturbed_image)
 # Display results
 print("Original Prediction:", np.argmax(original_pred))
 print("Perturbed Prediction:", np.argmax(perturbed_pred))
+"""

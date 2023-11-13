@@ -3,6 +3,8 @@ from tensorflow import keras
 import requests
 requests.packages.urllib3.disable_warnings()
 import ssl
+from FGSA import fgsm_attack
+import numpy as np
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -40,6 +42,26 @@ model.compile(optimizer='adam',
 # Train the model
 model.fit(train_images.reshape(-1, 28, 28, 1), train_labels, epochs=5)
 
+
+
 # Evaluate the model
-test_loss, test_acc = model.evaluate(test_images.reshape(-1, 28, 28, 1), test_labels)
-print("Test accuracy:", test_acc)
+#test_loss, test_acc = model.evaluate(test_images.reshape(-1, 28, 28, 1), test_labels)
+#print("Test accuracy of OG File:", test_acc)
+
+
+# Choose a random test image and label
+index = np.random.randint(0, len(test_images))
+image = test_images[index]
+label = np.array([test_labels[index]])
+
+# Generate adversarial example
+epsilon = 0.01
+perturbed_image = fgsm_attack(model, image.reshape(1, 28, 28, 1), label, epsilon)
+
+# Evaluate the model on the original and perturbed images
+original_pred = model.predict(image.reshape(1, 28, 28, 1))
+perturbed_pred = model.predict(perturbed_image)
+
+# Display results
+print("Original Prediction:", np.argmax(original_pred))
+print("Perturbed Prediction:", np.argmax(perturbed_pred))
