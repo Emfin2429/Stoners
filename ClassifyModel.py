@@ -48,11 +48,6 @@ model.fit(train_images.reshape(-1, 28, 28, 1), train_labels, epochs=5)
 
 
 
-# Evaluate the model
-#test_loss, test_acc = model.evaluate(test_images.reshape(-1, 28, 28, 1), test_labels)
-#print("Test accuracy of OG File:", test_acc)
-
-
 # Choose a random test image and label
 """
 index = np.random.randint(0, len(test_images))
@@ -61,36 +56,55 @@ label = np.array([test_labels[index]])
 """
 
 # Evaluate the model on the original and perturbed images
-original_pred = model.predict(image.reshape(1, 28, 28, 1))
-final_perturbed_image = 0
-final_epsilon = 0
+perturbed_test_images = test_images.copy()
+perb_test_labels = test_labels.copy()
 
-# currently have 1000 test images, change 100 of those images to be perturbed images from fgsa
-numChanged = 0
-listOfEpsilons = []
-epsilon = 0
+# Loop through every image
+for index in range(len(perturbed_test_images)):
+    numRand = random.randint(1, len(perturbed_test_images))
+    
+    # should randomly perturb roughly 10% of the training set.
+    if numRand <= 500:
+        #extracts the image
+        imageToMutate = perturbed_test_images[index]
+        #extracts image label
+        label = np.array([perb_test_labels[index]])
+        #sizes the image
+        original_pred = model.predict(imageToMutate.reshape(1, 28, 28, 1))
+        #perturbs the image
+        perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, .8)
+        #replaces OG image with new perturbed image
+        perturbed_test_images[index] = perturbed_image.squeeze()
 
-for index in range(len(test_images)):
-    numRand = random.randint(1, len(test_images))
-    if numRand <= 100:
-        imageToMutate = test_images[index]
-        label = np.array([test_labels[index]])
-        original_pred = model.predict(image.reshape(1, 28, 28, 1))
-        
 
+"""
         for i in range(1, 100):
             epsilon = i / 100.0
             perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, epsilon)
             new_Perb_image = np.argmax(model.predict(perturbed_image))
             og_image = np.argmax(original_pred)
 
+
+
+
             if new_Perb_image != og_image:
                 final_perturbed_image = perturbed_image
                 final_epsilon = epsilon
                 listOfEpsilons.append(final_epsilon)
                 numChanged += 1 
+                perturbed_test_images[index] = final_perturbed_image.squeeze()
                 break
+"""
+#test the accuracy of og data set
+test_loss, test_acc = model.evaluate(test_images.reshape(-1, 28, 28, 1), test_labels)
+print("Test accuracy of OG File:", test_acc)
 
+#test the accuracy on new data set
+test_loss2, test_acc2 = model.evaluate(perturbed_test_images.reshape(-1, 28, 28, 1), perb_test_labels)
+print("Test accuracy of changed File:", test_acc2)
+
+
+# Code for testing a single image with a fast gradient sign attack
 """
 # Evaluate the model on the original and perturbed images
 original_pred = model.predict(image.reshape(1, 28, 28, 1))
@@ -109,8 +123,6 @@ for i in range(1, 100):
         final_epsilon = epsilon
         break
 
-"""
-
 # Evaluate the model on the original and perturbed images
 perturbed_pred = model.predict(final_perturbed_image)
 
@@ -121,4 +133,4 @@ print("Final epsilon: ", final_epsilon)
 
 #print("Number of training samples:", len(train_images))
 #print("Number of testing samples:", len(test_images))
-
+"""
