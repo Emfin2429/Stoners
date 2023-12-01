@@ -6,6 +6,7 @@ import ssl
 from FGSA import fgsm_attack
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -58,21 +59,24 @@ label = np.array([test_labels[index]])
 # Evaluate the model on the original and perturbed images
 perturbed_test_images = test_images.copy()
 perb_test_labels = test_labels.copy()
+DisplayIndex = 0
 
 # Loop through every image
 for index in range(len(perturbed_test_images)):
     numRand = random.randint(1, len(perturbed_test_images))
     
-    # should randomly perturb roughly 10% of the training set.
-    if numRand <= 500:
+    # should randomly perturb roughly 20% of the testing data set. The testing set is 10000.
+    if numRand <= 6000:
+        DisplayIndex = index
+
         #extracts the image
         imageToMutate = perturbed_test_images[index]
         #extracts image label
         label = np.array([perb_test_labels[index]])
         #sizes the image
-        original_pred = model.predict(imageToMutate.reshape(1, 28, 28, 1))
+        #original_pred = model.predict(imageToMutate.reshape(1, 28, 28, 1))
         #perturbs the image
-        perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, .8)
+        perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, .3)
         #replaces OG image with new perturbed image
         perturbed_test_images[index] = perturbed_image.squeeze()
 
@@ -83,9 +87,6 @@ for index in range(len(perturbed_test_images)):
             perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, epsilon)
             new_Perb_image = np.argmax(model.predict(perturbed_image))
             og_image = np.argmax(original_pred)
-
-
-
 
             if new_Perb_image != og_image:
                 final_perturbed_image = perturbed_image
@@ -103,14 +104,12 @@ print("Test accuracy of OG File:", test_acc)
 test_loss2, test_acc2 = model.evaluate(perturbed_test_images.reshape(-1, 28, 28, 1), perb_test_labels)
 print("Test accuracy of changed File:", test_acc2)
 
-
 # Code for testing a single image with a fast gradient sign attack
 """
 # Evaluate the model on the original and perturbed images
 original_pred = model.predict(image.reshape(1, 28, 28, 1))
 final_perturbed_image = 0
 final_epsilon = 0
-
 
 for i in range(1, 100):
     epsilon = i / 100.0
@@ -133,4 +132,24 @@ print("Final epsilon: ", final_epsilon)
 
 #print("Number of training samples:", len(train_images))
 #print("Number of testing samples:", len(test_images))
+"""
+# Choose a random test image and label
+"""
+image = perturbed_test_images[DisplayIndex]
+label = np.array([perb_test_labels[DisplayIndex]])
+
+# Evaluate the model on the perturbed image
+perturbed_pred = model.predict(image.reshape(1, 28, 28, 1))
+predicted_label = np.argmax(perturbed_pred)
+
+
+# Display the original image
+plt.imshow(test_images[DisplayIndex], cmap='gray')
+plt.title(f"Original MNIST Digit: {test_labels[DisplayIndex]}")
+plt.show()
+
+# Display the perturbed image
+plt.imshow(image, cmap='gray')
+plt.title(f"Perturbed MNIST Digit: {predicted_label}")
+plt.show()
 """
