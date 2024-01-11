@@ -5,6 +5,8 @@ import requests  # Requests is a library for making HTTP requests in Python
 requests.packages.urllib3.disable_warnings()  # Disable SSL warnings in requests
 import ssl  # SSL (Secure Sockets Layer) is a protocol for secure communication over a computer network
 from FGSA import fgsm_attack  # Import the Fast Gradient Sign Method (FGSM) attack function from a custom module
+from createModel import createCNN #Import createModel function
+from perturbedData import perturbedDataEntries # gets perturbedDataEntries function
 import numpy as np  # NumPy is a library for numerical operations in Python
 import random  # Python library for generating random numbers
 import matplotlib.pyplot as plt  # Matplotlib is a plotting library for Python
@@ -31,40 +33,24 @@ mnist = tf.keras.datasets.mnist
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
+initialModel = createCNN(train_images, train_labels, 5)
 
-# Create a sequential model, which is a linear stack of layers
-model = keras.Sequential([
-    # Convolutional layer with 32 filters, each of size (3, 3), using ReLU activation
-    keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
-    
-    # Max pooling layer with a pool size of (2, 2)
-    keras.layers.MaxPooling2D(2, 2),
-    
-    # Convolutional layer with 64 filters, each of size (3, 3), using ReLU activation
-    keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    
-    # Max pooling layer with a pool size of (2, 2)
-    keras.layers.MaxPooling2D(2, 2),
-    
-    # Flatten layer to convert the 2D matrix data to a vector for the fully connected layers
-    keras.layers.Flatten(),
-    
-    # Dense (fully connected) layer with 128 neurons and ReLU activation
-    keras.layers.Dense(128, activation='relu'),
-    
-    # Dense (fully connected) layer with 10 neurons (output layer for classification) and softmax activation
-    keras.layers.Dense(10, activation='softmax')
-])
+attackedTrainingImage, attackedTrainingLabel = perturbedDataEntries(initialModel, train_images, train_labels, .1)
+
+attackedModel = createCNN(attackedTrainingImage, attackedTrainingLabel, 5)
+
+attackedtestImage, attackedtestLabel = perturbedDataEntries(initialModel, test_images, test_labels, .1)
 
 
-# Compile the model with an optimizer, loss function, and evaluation metric
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+#test the accuracy of og data set
+test_loss, test_acc = initialModel.evaluate(attackedtestImage.reshape(-1, 28, 28, 1),attackedtestLabel)
+print("Test accuracy of OG File:", test_acc)
 
-# Train the model
-model.fit(train_images.reshape(-1, 28, 28, 1), train_labels, epochs=5)
+#test the accuracy on new data set
+test_loss2, test_acc2 = attackedModel.evaluate(attackedtestImage.reshape(-1, 28, 28, 1), attackedtestLabel)
+print("Test accuracy of changed File:", test_acc2)
 
+"""
 # Evaluate the model on the original and perturbed images
 perturbed_test_images = test_images.copy()
 perb_test_labels = test_labels.copy()
@@ -115,4 +101,4 @@ plt.show()
 plt.imshow(image, cmap='gray')
 plt.title(f"Perturbed MNIST Digit: {predicted_label}")
 plt.show()
-
+"""
