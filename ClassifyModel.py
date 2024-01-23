@@ -35,11 +35,11 @@ test_images = test_images / 255.0
 
 initialModel = createCNN(train_images, train_labels, 5)
 
-attackedTrainingImage, attackedTrainingLabel = perturbedDataEntries(initialModel, train_images, train_labels, .1)
+attackedTrainingImage, attackedTrainingLabel = perturbedDataEntries(initialModel, train_images, train_labels, .1, .3)
 
 attackedModel = createCNN(attackedTrainingImage, attackedTrainingLabel, 5)
 
-attackedtestImage, attackedtestLabel = perturbedDataEntries(initialModel, test_images, test_labels, .1)
+attackedtestImage, attackedtestLabel = perturbedDataEntries(initialModel, test_images, test_labels, .6, .3)
 
 
 #test the accuracy of og data set

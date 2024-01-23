@@ -7,7 +7,7 @@ from FGSA import fgsm_attack  # Import the Fast Gradient Sign Method (FGSM) atta
 from createModel import createCNN #Import createModel function
 
 
-def perturbedDataEntries(model, images, labels, percent):
+def perturbedDataEntries(model, images, labels, percent, epsilon):
     # Evaluate the model on the original and perturbed images
     perturbed_test_images = images.copy()
     perb_test_labels = labels.copy()
@@ -27,7 +27,7 @@ def perturbedDataEntries(model, images, labels, percent):
             #sizes the image
             #original_pred = model.predict(imageToMutate.reshape(1, 28, 28, 1))
             #perturbs the image
-            perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, .3)
+            perturbed_image = fgsm_attack(model, imageToMutate.reshape(1, 28, 28, 1), label, epsilon)
             #replaces OG image with new perturbed image
             perturbed_test_images[index] = perturbed_image.squeeze()
     return perturbed_test_images, perb_test_labels
